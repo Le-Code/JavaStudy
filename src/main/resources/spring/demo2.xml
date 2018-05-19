@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--基于代理类的自动实现-->
+    <!--1.目标类-->
+    <bean id="userDao" class="spring.demo2.spring的AOP.基于代理类的aop实现.UserDaoImpl"></bean>
+    <!--切面类-->
+    <bean id="myAspect" class="spring.demo2.spring的AOP.基于代理类的aop实现.MyAspect"></bean>
+    <!--定义切点切面-->
+    <bean id="myPointcutAdvisor" class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+        <!--定义表达式-->
+        <!--.任意字符   *任意多个-->
+        <property name="patterns" value=".*addUser.*"></property>
+        <!--应用增强-->
+        <property name="advice" ref="myAspect"></property>
+    </bean>
+    <!--使用spring代理工厂定义一个名为userDaoProxy的代理对象-->
+    <bean id="userDaoProxy" class="org.springframework.aop.framework.ProxyFactoryBean">
+        <!--指定目标对象-->
+        <property name="target" ref="userDao"></property>
+        <!--制定代理方式，true：使用cglib，false（默认）:使用jdk动态代理-->
+        <property name="proxyTargetClass" value="true"></property>
+        <!--指定切面，环绕通知-->
+        <property name="interceptorNames" value="myAspect"></property>
+    </bean>
+
+
+    <!--aspectj 开发-->
+    <!--目标类-->
+    <bean id="uDao" class="spring.demo2.spring的AOP.AspectJ开发.UserDao"/>
+    <!--切面-->
+    <bean id="mAspect" class="spring.demo2.spring的AOP.AspectJ开发.MyAspect"/>
+    <!--aop编程-->
+    <aop:config>
+        <!--配置切面-->
+        <aop:aspect ref="mAspect">
+            <!--配置切入点，通知增强那些方法-->
+            <aop:pointcut id="mPointCut" expression="execution(* spring.demo2.spring的AOP.AspectJ开发.*.*(..))"/>
+            <!--关联通知advice和切入点pointCut-->
+            <!--前置通知-->
+            <aop:before method="before" pointcut-ref="mPointCut"/>
+            <!--后置通知，在方法返回之后执行，就可以获得返回值
+            returning属性：用于设置后置通知的第二个参数的名称,类型是object-->
+            <aop:after-returning method="afterReturn" pointcut-ref="mPointCut" returning="returnVal"/>
+            <!--环绕通知-->
+            <aop:around method="around" pointcut-ref="mPointCut"/>
+            <!--抛出通知
+            如果程序没有异常则不会执行增强
+            throwing属性：用于设置通知第二个属性参数的名称，类型是object
+            -->
+            <aop:after-throwing method="afterThrowing" pointcut-ref="mPointCut" throwing="e"/>
+
+            <!--最终通知，无论程序发生什么，都会执行-->
+            <aop:after method="after" pointcut-ref="mPointCut"/>
+        </aop:aspect>
+    </aop:config>
+
+    <!--基于注解方式的实现-->
+
+    <!--制定需要扫描的包，使注解生效-->
+    <context:component-scan base-package="spring.demo2.spring的AOP.基于注解方式的实现"/>
+    <!--启动基于注解支持的AspectJ支持-->
+    <aop:aspectj-autoproxy/>
+    <bean id="aspect" class="spring.demo2.spring的AOP.基于注解方式的实现.MyAspect"/>
+    <bean id="orderDao" class="spring.demo2.spring的AOP.基于注解方式的实现.OrderDao"/>
+</beans>
