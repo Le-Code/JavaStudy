@@ -46,9 +46,10 @@ public class YaoRedisClient {
         //发送给server
         outputStream.write(command.toString().getBytes("utf-8"));
         outputStream.flush();
+        outputStream.close();
         //接受返回
         byte[] b = new byte[1024];
-        while (inputStream.read(b)==-1){
+        if (inputStream.read(b)==-1){
             throw new SocketException("没有数据返回");
         }
         return new String(b);
