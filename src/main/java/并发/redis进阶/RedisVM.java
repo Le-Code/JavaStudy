@@ -8,10 +8,12 @@ public class RedisVM {
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(6378);
-        Socket socket = serverSocket.accept();
-        InputStream is = socket.getInputStream();
-        byte[] buffer = new byte[1024];
-        is.read(buffer);
-        System.out.println(new String(buffer));
+        while (true) {
+            Socket socket = serverSocket.accept();
+            InputStream is = socket.getInputStream();
+            byte[] buffer = new byte[1024];
+            is.read(buffer);
+            System.out.println(new String(buffer));
+        }
     }
 }
