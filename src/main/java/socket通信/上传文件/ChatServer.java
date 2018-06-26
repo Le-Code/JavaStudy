@@ -1,8 +1,8 @@
-package socket通信.单聊;
+package socket通信.上传文件;
 
 import com.google.gson.Gson;
-import socket通信.单聊.entity.MessageBean;
-import socket通信.单聊.entity.UserInfoBean;
+import socket通信.上传文件.entity.MessageBean;
+import socket通信.上传文件.entity.UserInfoBean;
 import socket通信.聊天消息推送.SocketUrls;
 
 import java.io.BufferedReader;
@@ -63,7 +63,7 @@ public class ChatServer {
             //将链接进来的socket保存到集合中
             socketList.add(socket);
             //用户接入
-            System.out.println("用户接入："+socket.getPort()+","+socket.getLocalAddress().getHostName());
+            System.out.println("用户接入："+socket.getPort());
             //开启一个子线程等待另外的socket接入
             new Thread(new Runnable() {
                 public void run() {
@@ -101,7 +101,7 @@ public class ChatServer {
      * 模拟添加信息进入数据库和内存
      * @param messageBean
      */
-    private void setChatMap(MessageBean messageBean,Socket socket) {
+    private void setChatMap(MessageBean messageBean, Socket socket) {
         //将用户信息存储
         if (userMap!=null&&userMap.get(messageBean.getUserId())==null){
             userMap.put(messageBean.getUserId(),getUserInfoBean(messageBean.getUserId()));
