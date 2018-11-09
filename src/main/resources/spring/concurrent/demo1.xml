@@ -7,21 +7,21 @@
     <context:component-scan base-package="并发.秒杀系统的设计与实现"/>
 
     <!--配置数据源-->
-    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+    <com.yao.bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
           destroy-method="close">
         <property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
         <property name="url" value="jdbc:mysql://localhost:3306/test"></property>
         <property name="username" value="root"></property>
         <property name="password" value="yaojian0105"></property>
-    </bean>
+    </com.yao.bean>
 
     <!--配置jdbc模板-->
-    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+    <com.yao.bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
         <property name="dataSource" ref="dataSource"></property>
-    </bean>
+    </com.yao.bean>
 
-    <bean id="mainRedisCache" class="并发.秒杀系统的设计与实现.RedisCacheUtils">
+    <com.yao.bean id="mainRedisCache" class="并发.秒杀系统的设计与实现.RedisCacheUtils">
         <constructor-arg name="host" value="127.0.0.1"></constructor-arg>
         <constructor-arg name="port" value="6379"></constructor-arg>
-    </bean>
+    </com.yao.bean>
 </beans>

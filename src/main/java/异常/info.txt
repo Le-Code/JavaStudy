@@ -1,0 +1,3 @@
+try/catch/finally细节：
+    如果try或者catch语句内有return 语句，则return语句在finally语句执行结束时才执行，但是finally并不能改变返回值
+    如果在finally语句中有return，则try和catch内的return 会丢失，实际返回的是finally中的返回值，还会掩盖try和catch中的异常，finally中抛出异常同样如此

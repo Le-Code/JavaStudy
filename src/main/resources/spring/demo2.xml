@@ -6,33 +6,33 @@
 
     <!--基于代理类的自动实现-->
     <!--1.目标类-->
-    <bean id="userDao" class="spring.demo2.spring的AOP.基于代理类的aop实现.UserDaoImpl"></bean>
+    <com.yao.bean id="userDao" class="spring.demo2.spring的AOP.基于代理类的aop实现.UserDaoImpl"></com.yao.bean>
     <!--切面类-->
-    <bean id="myAspect" class="spring.demo2.spring的AOP.基于代理类的aop实现.MyAspect"></bean>
+    <com.yao.bean id="myAspect" class="spring.demo2.spring的AOP.基于代理类的aop实现.MyAspect"></com.yao.bean>
     <!--定义切点切面-->
-    <bean id="myPointcutAdvisor" class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+    <com.yao.bean id="myPointcutAdvisor" class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
         <!--定义表达式-->
         <!--.任意字符   *任意多个-->
         <property name="patterns" value=".*addUser.*"></property>
         <!--应用增强-->
         <property name="advice" ref="myAspect"></property>
-    </bean>
+    </com.yao.bean>
     <!--使用spring代理工厂定义一个名为userDaoProxy的代理对象-->
-    <bean id="userDaoProxy" class="org.springframework.aop.framework.ProxyFactoryBean">
+    <com.yao.bean id="userDaoProxy" class="org.springframework.aop.framework.ProxyFactoryBean">
         <!--指定目标对象-->
         <property name="target" ref="userDao"></property>
         <!--制定代理方式，true：使用cglib，false（默认）:使用jdk动态代理-->
         <property name="proxyTargetClass" value="true"></property>
         <!--指定切面，环绕通知-->
         <property name="interceptorNames" value="myAspect"></property>
-    </bean>
+    </com.yao.bean>
 
 
     <!--aspectj 开发-->
     <!--目标类-->
-    <bean id="uDao" class="spring.demo2.spring的AOP.AspectJ开发.UserDao"/>
+    <com.yao.bean id="uDao" class="spring.demo2.spring的AOP.AspectJ开发.UserDao"/>
     <!--切面-->
-    <bean id="mAspect" class="spring.demo2.spring的AOP.AspectJ开发.MyAspect"/>
+    <com.yao.bean id="mAspect" class="spring.demo2.spring的AOP.AspectJ开发.MyAspect"/>
     <!--aop编程-->
     <aop:config>
         <!--配置切面-->
@@ -64,6 +64,6 @@
     <context:component-scan base-package="spring.demo2.spring的AOP.基于注解方式的实现"/>
     <!--启动基于注解支持的AspectJ支持-->
     <aop:aspectj-autoproxy/>
-    <bean id="aspect" class="spring.demo2.spring的AOP.基于注解方式的实现.MyAspect"/>
-    <bean id="orderDao" class="spring.demo2.spring的AOP.基于注解方式的实现.OrderDao"/>
+    <com.yao.bean id="aspect" class="spring.demo2.spring的AOP.基于注解方式的实现.MyAspect"/>
+    <com.yao.bean id="orderDao" class="spring.demo2.spring的AOP.基于注解方式的实现.OrderDao"/>
 </beans>

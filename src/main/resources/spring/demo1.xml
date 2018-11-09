@@ -4,11 +4,11 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <!--demo1所创建的bean对象-->
-    <bean id="springHelloWorld" class="spring.demo1.SpringHello"></bean>
-    <bean id="strutsHello" class="spring.demo1.StrutsHello"></bean>
+    <com.yao.bean id="springHelloWorld" class="spring.demo1.SpringHello"></com.yao.bean>
+    <com.yao.bean id="strutsHello" class="spring.demo1.StrutsHello"></com.yao.bean>
 
-    <bean id="helloWorldService" class="spring.demo1.HelloWorldService">
+    <com.yao.bean id="helloWorldService" class="spring.demo1.HelloWorldService">
         <property name="helloWord" ref="springHelloWorld"></property>
-    </bean>
+    </com.yao.bean>
 
 </beans>

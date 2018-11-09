@@ -7,7 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.net.SocketException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class RedisTest {
 
@@ -41,5 +42,15 @@ public class RedisTest {
                 }
             }
         }).start();
+    }
+
+    @Test
+    public void f3(){
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println(1);
+            }
+        },1000,3000);
     }
 }
