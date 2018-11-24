@@ -1,0 +1,105 @@
+泛型在经过编译器后，类型参数T擦除，用Object来代替，之所以用泛型是能够让开发者在编译阶段就知道哪些出现问题,帮助开发者发现问题，解决问题，及时修复bug
+除了泛型类，也存在泛型方法,一个方法是否是泛型与他的类是否是泛型没有关系
+    public static <T> int indexOf(T[] arr,T data){
+        for (int i = 0;i<arr.length;i++){
+            if(arr[i].equals(data){
+                return i;
+            }
+        }
+    }
+
+    public <U,V> Pair<U,V> makePair(U first,V second){
+        Pair<U,V> pair = new Pair<>(first,second)
+        return pair;
+    }
+类型参数的限定
+    1.上限为某个具体的类,指定边界后，类型擦除时就不会转换为object ，而是会转换成他的边界类型
+        public class NumberPair<U extends Number,V extends Number> extends Pair<U,V>{
+            public NumberPair(U first,V second){
+                super(first,second)
+            }
+        }
+    2.上限为某个接口
+        public static <T extends Comparable<T>> T max(T[] arr){
+            T max = arr[0];
+            for(int i = 1;i<arr.length;i++){
+                if(arr[i].compareTo(max)>0){
+                    max = arr[i];
+                }
+            }
+            return max;
+        }
+    3.上限为其他类型参数
+        public <E extends T> void addAll(DynamicArray<E> c){
+            for(int i = 0;i<c.getSize();i++){
+                add(c.get(i))
+            }
+        }
+解析通配符
+    public void addAll(DynamicArray<? extends T> c){
+        for(int i = 0;i<c.getSize();i++){
+            add(c.get(i))
+        }
+    }
+    <E extends T>表示“定义”类型参数，定义了一个类型参数T,可以放在泛型类定义中类名后面，泛型方法返回值前面
+    <? extends T>用于“实例化”类型参数，只是这个具体类型是未知的，只知道是E或者是E的子类
+    通配符有一个重要的限制就是“只能读，不能写”，会报编译错误，因为如果可以写的话无法保证类型安全性
+        DynamicArray<Integer> ints = new DynamicArray<>()
+        DynamicArray<? extends Number> nums = ints;
+        Integer a = 20;
+        nums.add(a);//报错
+        nums.add((Number)a);//报错
+    不适宜用通配符的情况：1.类型参数之间有依赖关系；2.返回值依赖类型参数；3.需要写操作
+超类型通配符
+    <? super E>表示E的某个父类型
+    可以更加灵活的写入
+    public void copyTo(DynamicArray<? super T>c){
+        for(int i = 0;i<size;i++){
+            c.add(get(i))
+        }
+    }
+    父类实现排序，子类集成父类的排序
+    public <T extends Comparable<? super T> T getMax(DynamicArray<T> c){
+        T max = c.get(0);
+        for(int i = 1;i<c.getSize();i++){
+            if(c.get(i).compareTo(max)>0){
+                max = c.get(i);
+            }
+        }
+        return max;
+    }
+通配符的比较
+    <? super E> 用于灵活比较或者写入，是的对象可以写入父类型的容器，使得父类型的比较方法可以应用于子类对象
+    <?> <? extends E> 适用于灵活读取
+
+细节和局限性
+    1.类型参数会被替换成Object所以java泛型中不能有基本数据类型
+    2.运行时类型不适用于泛型
+        Class<?> clazz = "hello".getClass();
+        类型对象只有一个，所以Pair<String,String>.class是不支持的，instance也是如此
+    3.类型擦除可能会引发一些冲突
+        class Base implements Comparable<Base>
+        class Child extends Base
+        如果需要重写Child的比较方法，如果再一次实现Comparable<Child>尽管泛型不一样但还是会出现编译错误，同一个接口不能被实现两次（类型擦除后实际上只能有一个），此时需要重写父类的compareTo方法
+    4.需要注意的地方
+        一.不能通过类型参数创建对象
+            T t = new T();由于类型擦除，java只能创建Object对象
+            如果实在像创建，则可以通过反射来创建
+            public static <T> T create(Class<T> clazz){
+                try{
+                    return clazz.newInstance();
+                }catch(Exception e){
+                    e.printStackTrace();
+                }
+            }
+        二.类型参数不能用于静态变量和方法
+            public class Singleton<T>{
+                public static T instance;
+                public synchronized static T getInstance(){
+                    if(instance==null){
+                        //创建实例
+                    }
+                    return instance;
+                }
+            }
+            对于每种实例化类型都需要一个对应的静态变量和方法，但是由于类型擦出，所以Singleton类型只有一个。

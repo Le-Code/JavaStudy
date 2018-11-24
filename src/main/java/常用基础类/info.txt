@@ -1,0 +1,111 @@
+包装类
+    每种包装类都有一个静态方法valueOf()，接受基本类型转，返回引用类型，也都有一个实例方法xxxValue()返回对应的基本类型
+    public static Integer valueOf(int i) {
+            if (i >= IntegerCache.low && i <= IntegerCache.high)
+                return IntegerCache.cache[i + (-IntegerCache.low)];
+            return new Integer(i);
+    }
+    private static class IntegerCache {
+            static final int low = -128;
+            static final int high;
+            static final Integer cache[];
+            static{
+                high = 127;
+                cache = new Integer[(high - low) + 1];
+            }
+    }
+    使用valueOf创建包装类的时候，首先会判断这个数字的大小，如果是在-128-127之间则直接在缓存数组中获取已经预先创建好的Integer对象，如果超过则通过new创建对象
+equals
+    用于判断当前对象和参数传入的对象是否相同，equal反应的是对相见的逻辑相等关系
+hashCode
+    由对象中一般不变的属性映射得来，用来对对象快速进行区分、分组。相同对象的hashCode必须一样，反之不做要求。hashCode的默认实现一般是将对象的地址转换成整数
+    如果仅仅重写equal判断相等，使用equal判断相等为true，==判断相等为false(比较的是地址）;在hashSet容器中添加去重也不可实现,必须要两者同时使用缺一不可
+    Comparable接口，对象与参数对象比较，小于、等于、大于参数返回值大小-1、0、1，当使用TreeSet进行排序时根据这个判断
+数字进行翻转的高效算法
+    首先交换相邻的单一位，然后交换相邻的位，接着是4位为一组交换、然后是8位、16位，16位之后就结束了。适用于二进制（高效）和十进制。利用CPU可以快速额实现位移和逻辑运算
+剖析Character
+    UniCode为世界上的每个字符分配一个编号，0x000000-0x10FFFF,范围在0x0000-0xFFFF为常用字符集成BMP,编号在0x10000-0x10FFFF的字符叫做增补字符。
+    UniCode规定了编号，但是没有将编号映射成为二进制。UTF-16(java内部采用）将编号映射成为2/4个字节，BMP直接用两个字节表示，增补字符用4个字节表示
+    char表示一个字符，所以只能表示BMP中的字符，对于增补字符，需要使用两个char来表示,前两个字节叫做高代理项（0xD800-0xDBFF），后两个字节叫做低代理项（0xDC00-0xDFFF)
+    使用int可以表示任意一个UniCode字符，整数编号成为代码点（Code point)，表示一个UniCode字符,还有一个词码单元（Code unit)表示一个char
+剖析String
+    public final class String{
+        /** The value is used for character storage. */
+        private final char value[];
+        //构造方法
+        public String(char value[])
+        public String(char value[], int offset, int count)
+        //字符串的切割实际上是调用前面的构造方法重新创建了一个字符串
+        public String substring(int beginIndex) {
+            if (beginIndex < 0) {
+                throw new StringIndexOutOfBoundsException(beginIndex);
+            }
+            int subLen = value.length - beginIndex;
+            if (subLen < 0) {
+                throw new StringIndexOutOfBoundsException(subLen);
+            }
+            return (beginIndex == 0) ? this : new String(value, beginIndex, subLen);
+        }
+    }
+    String类是不可修改的，看似修改的String实则是创建了新的string类
+    字符串常量存放在一个常量池中被所有使用者共享
+    如果对字符串修改操作频繁则使用StringBuilder（线程不安全）和StringBuffer(线程安全）类
+    StringBuilder
+        其实也是封装了一个字符数组，只不过是可以修改的
+        初始化会创建一个长度为16的字符数组，在后面添加的时候如果长度够则直接添加，如果长度不够则扩展数组然后再添加
+        public final class StringBuilder extends AbstractStringBuilder{
+            public StringBuilder() {
+                super(16);
+            }
+            public StringBuilder append(String str) {
+                    super.append(str);
+                    return this;
+            }
+        }
+        abstract class AbstractStringBuilder{
+            AbstractStringBuilder(int capacity) {
+                value = new char[capacity];
+            }
+            public AbstractStringBuilder append(String str) {
+                if (str == null)
+                    return appendNull();
+                int len = str.length();
+                ensureCapacityInternal(count + len);
+                str.getChars(0, len, value, count);
+                count += len;
+                return this;
+            }
+            private void ensureCapacityInternal(int minimumCapacity) {
+                // overflow-conscious code
+                if (minimumCapacity - value.length > 0) {
+                    value = Arrays.copyOf(value,newCapacity(minimumCapacity));
+                }
+            }
+            private int newCapacity(int minCapacity) {
+                // overflow-conscious code
+                int newCapacity = (value.length << 1) + 2;
+                if (newCapacity - minCapacity < 0) {
+                    newCapacity = minCapacity;
+                }
+                return (newCapacity <= 0 || MAX_ARRAY_SIZE - newCapacity < 0)
+                    ? hugeCapacity(minCapacity)
+                    : newCapacity;
+            }
+        }
+    String的+和+=操作
+        java编译器一般会生成StringBuilder,+和+=操作会转换成append
+        String a = "张三";a+="李四"; = StringBuilder sb = new StringBuilder("张三");sb.append("李四");
+        在频繁使用+=时候需要直接创建StringBuilder/StringBuffer，因为java编译器并不会那么智能，例如
+        String hello = "hello";
+        for(int i = 0;i<10;i++) hello+="hello";
+        =
+        String hello = "hello";for(int i = 0;i<10;i++){
+            StringBuilder sb = new StringBuilder(hello);
+            sb.append("hello")
+            hello = sb.toString();
+        }
+        会频繁的创建StringBuilder对象
+
+随机类
+    Math.random()生成一个[0,1)的数字，其实内部也是调用了random类
+
