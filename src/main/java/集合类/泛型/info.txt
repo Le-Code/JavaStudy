@@ -103,3 +103,13 @@
                 }
             }
             对于每种实例化类型都需要一个对应的静态变量和方法，但是由于类型擦出，所以Singleton类型只有一个。
+        三.不能通过类型参数创建数组
+            数组是java直接支持的概念，所以
+                Integer[] ints = new Integer[10];
+                Number[] nums = ints;
+                Object[] objs = ints;
+                因为Number和Object是Integer的父类，所以上述操作是合法的，所以可能会引起运行时异常 objs = "hello"
+                Pair<Object,Integer>[] pairs = new Pair<Object,Integer>[10];
+                Object[] objs = pairs;
+                objs[0] =  new Pair<Double,String>(1.2,"hello"),此时并不会引起编译异常或者运行时异常(擦出后都是object)，但是当作Pair<Object,Integer>处理会产生异常
+                泛型是不可以直接创建数组的例如 T[] t = new T[10];是不支持的，但是Pair<Object,Integer>[] pairs = new Pair<Object,Integer>[10];是可以的

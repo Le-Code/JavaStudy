@@ -12,6 +12,8 @@ public class DynamicArray <T>{
 
     private Object[] contents;
 
+    private T[] arr;
+
     private int size;
 
     public DynamicArray(){
