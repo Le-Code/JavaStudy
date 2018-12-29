@@ -1,0 +1,128 @@
+TreeMap使用红黑树实现的，每个节点都有一个颜色，非黑即红
+节点类型为Entry
+static final class Entry<K,V> implements Map.Entry<K,V> {
+        K key;
+        V value;
+        Entry<K,V> left;
+        Entry<K,V> right;
+        Entry<K,V> parent;
+        boolean color = BLACK;
+}
+添加一个方法
+    public V put(K key, V value) {
+        Entry<K,V> t = root;
+        //如果根节点为空，执行下面操作
+        if (t == null) {
+            //在这一步并不是进行比较排序的，而是为了检查key的类型和null，如果类型不-匹配或者为null，则抛出异常
+            compare(key, key); // type (and possibly null) check
+
+            root = new Entry<>(key, value, null);
+            size = 1;
+            modCount++;
+            return null;
+        }
+
+        //不是第一次添加，添加的关键步骤是寻找父节点
+        int cmp;
+        Entry<K,V> parent;
+        // split comparator and comparable paths
+        Comparator<? super K> cpr = comparator;
+        //设置了comparator来进行查找父节点
+        if (cpr != null) {
+            do {
+                parent = t;
+                cmp = cpr.compare(key, t.key);
+                if (cmp < 0)
+                    t = t.left;
+                else if (cmp > 0)
+                    t = t.right;
+                else
+                    return t.setValue(value);
+            } while (t != null);
+        }
+        //
+        else {
+            if (key == null)
+                throw new NullPointerException();
+            @SuppressWarnings("unchecked")
+                Comparable<? super K> k = (Comparable<? super K>) key;
+            do {
+                parent = t;
+                cmp = k.compareTo(t.key);
+                if (cmp < 0)
+                    t = t.left;
+                else if (cmp > 0)
+                    t = t.right;
+                else
+                    return t.setValue(value);
+            } while (t != null);
+        }
+        Entry<K,V> e = new Entry<>(key, value, parent);
+        if (cmp < 0)
+            parent.left = e;
+        else
+            parent.right = e;
+        fixAfterInsertion(e);
+        size++;
+        modCount++;
+        return null;
+    }
+    //
+    final int compare(Object k1, Object k2) {
+        return comparator==null ? ((Comparable<? super K>)k1).compareTo((K)k2)
+            : comparator.compare((K)k1, (K)k2);
+    }
+
+根据键值获取值
+    public V get(Object key) {
+        //按照红黑树进行查找，小于根节点往左边走，大于根节点网右边走
+        Entry<K,V> p = getEntry(key);
+        return (p==null ? null : p.value);
+    }
+
+根据值查找
+    可以高效的按照键来查找
+    但是要按照值来查找则需要遍历
+    public boolean containsValue(Object value) {
+        for (Entry<K,V> e = getFirstEntry(); e != null; e = successor(e))
+            if (valEquals(value, e.value))
+                return true;
+        return false;
+    }
+    查找第一个节点
+    final Entry<K,V> getFirstEntry() {
+        Entry<K,V> p = root;
+        if (p != null)
+            while (p.left != null)
+                p = p.left;
+        return p;
+    }
+    查找当前节点的后继节点
+    如果有右孩子，后继节点为右子树中最小的节点
+    如果没有右孩子，从当前节点往上找，如果是父节点的右孩子，则继续，直到不是右孩子或者父节点为空
+    static <K,V> TreeMap.Entry<K,V> successor(Entry<K,V> t) {
+        if (t == null)
+            return null;
+        else if (t.right != null) {
+            Entry<K,V> p = t.right;
+            while (p.left != null)
+                p = p.left;
+            return p;
+        } else {
+            Entry<K,V> p = t.parent;
+            Entry<K,V> ch = t;
+            while (p != null && ch == p.right) {
+                ch = p;
+                p = p.parent;
+            }
+            return p;
+        }
+    }
+
+删除键值对
+    private void deleteEntry(Entry<K,V> p) {
+        有三种情况
+        1.叶子节点，直接删除
+        2.只有一个孩子节点，将父节点与孩子节点直接建立连接
+        3.有两个孩子节点，找到后继节点，替换，删除
+    }

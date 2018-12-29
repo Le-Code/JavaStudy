@@ -1,0 +1,5 @@
+实现细节
+    用来存储键值集合
+    private transient K[] keyUniverse;
+    用来存储对应的值
+    private transient Object[] vals;

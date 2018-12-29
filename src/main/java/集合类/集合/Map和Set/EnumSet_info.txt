@@ -1,0 +1,66 @@
+实现原理
+    public abstract class EnumSet<E extends Enum<E>>
+    抽象方法，不能实例化，通过静态方法，noneOf,allOf,of等
+    创建过程，使用位向量来实现，用一组位来表示一个集合的状态，每个位对应一个元素，状态只可能有两种，要么存在要么不存在
+    如果枚举值个数小于64（long)，则创建的是RegularEnumSet，否则就是JumboEnumSet
+    public static <E extends Enum<E>> EnumSet<E> noneOf(Class<E> elementType) {
+            Enum<?>[] universe = getUniverse(elementType);
+            if (universe == null)
+                throw new ClassCastException(elementType + " not an enum");
+
+            if (universe.length <= 64)
+                return new RegularEnumSet<>(elementType, universe);
+            else
+                return new JumboEnumSet<>(elementType, universe);
+        }
+
+        class RegularEnumSet<E extends Enum<E>> extends EnumSet<E> {
+            private long elements = 0L; 从最低位开始，如果有一个元素那么就是1，没有元素就是0，能够得到一个确定的elements,通过elements64位中1的个数得到多少个元素
+
+            首先检查类型，然后将元素e对应的位设为1，与现有的elements相或
+            public boolean add(E e) {
+                typeCheck(e);
+
+                long oldElements = elements;
+                elements |= (1L << ((Enum<?>)e).ordinal());
+                return elements != oldElements;
+            }
+
+            public int size() {
+                return Long.bitCount(elements);
+            }
+        }
+
+        class JumboEnumSet<E extends Enum<E>> extends EnumSet<E> {
+            用一个long类型的数组来存储
+            private long elements[];
+
+            JumboEnumSet(Class<E>elementType, Enum<?>[] universe) {
+                super(elementType, universe);
+                elements = new long[(universe.length + 63) >>> 6];
+            }
+            添加首先通过“eOrdinal>>>6 除以64”先找到索引位置，然后在调用和RegularEnumSet相同的添加方法
+            public boolean add(E e) {
+                typeCheck(e);
+
+                int eOrdinal = e.ordinal();
+                int eWordNum = eOrdinal >>> 6;
+
+                long oldElements = elements[eWordNum];
+                elements[eWordNum] |= (1L << eOrdinal);
+                boolean result = (elements[eWordNum] != oldElements);
+                if (result)
+                    size++;
+                return result;
+            }
+        }
+
+        删除方法：
+            将元素e对应的位设置为0就表示删除了
+        包含：
+            按位与操作，不为0则表示包含
+
+总结：
+    实现上使用位向量，简单高效
+
+对于只有两种状态，且需要进行集合运算的数据，使用位向量进行表示，位运算进行处理

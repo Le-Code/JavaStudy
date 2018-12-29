@@ -1,0 +1,14 @@
+HashSet实现原理
+    1.HashSet内部使用HashMap实现的，内部有一个HashMap变量
+        private transient HashMap<E,Object> map;
+
+        不需要key-value,只需要key,所以内部定义一个固定的value
+            private static final Object PRESENT = new Object();
+    2.添加操作就是调用hashMap的put方法
+        public boolean add(E e) {
+            return map.put(e, PRESENT)==null;
+        }
+    3.删除操作
+        public boolean remove(Object o) {
+            return map.remove(o)==PRESENT;
+        }

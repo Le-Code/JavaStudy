@@ -1,0 +1,112 @@
+PriorityQueue
+    内部使用堆来实现的，内部元素不是有序的，逐个出队会得到有序的输出
+
+    要求元素首先Comparable接口或者传递一个比较器
+
+内部逻辑：
+
+    transient Object[] queue; 存储元素的
+    private int size = 0; 元素个数
+
+   ===========向队列中添加一个元素==============
+    public boolean add(E e) {
+        return offer(e);
+    }
+
+    public boolean offer(E e) {
+        if (e == null)
+            throw new NullPointerException();
+        modCount++;
+        int i = size;
+        if (i >= queue.length)
+            grow(i + 1);    //如果长度不够则添加数组长度
+        size = i + 1;
+        if (i == 0)
+            queue[0] = e;
+        else
+            siftUp(i, e);   //堆的添加元素原理，先放在最后一个位置上然后逐步向父节点传递
+        return true;
+    }
+    添加数组长度
+    private void grow(int minCapacity) {
+        int oldCapacity = queue.length;
+        // Double size if small; else grow by 50%
+        int newCapacity = oldCapacity + ((oldCapacity < 64) ?
+                                         (oldCapacity + 2) :
+                                         (oldCapacity >> 1));
+        // overflow-conscious code
+        if (newCapacity - MAX_ARRAY_SIZE > 0)
+            newCapacity = hugeCapacity(minCapacity);
+        queue = Arrays.copyOf(queue, newCapacity);
+    }
+    按照两种方式来传递，第一种是根据comparator来进行排序，一种是根据元素实现了comparable接口来排序
+    private void siftUp(int k, E x) {
+        if (comparator != null)
+            siftUpUsingComparator(k, x);
+        else
+            siftUpComparable(k, x);
+    }
+
+    ===============取出头部元素=================
+    如果元素个数为0直接输出null,否去取出队列第一个元素
+    public E peek() {
+        return (size == 0) ? null : (E) queue[0];
+    }
+
+    ===========删除头部元素（出队）=========
+    元素个数为0直接输出null,取出数组第一个元素，将最后一个元素取出放在数组头部，然后与子节点进行排序比较
+    public E poll() {
+        if (size == 0)
+             return null;
+         int s = --size;
+         modCount++;
+         E result = (E) queue[0];
+         E x = (E) queue[s];
+         queue[s] = null;
+         if (s != 0)
+             siftDown(0, x);
+         return result;
+     }
+     和shiftUp使用的方法差不多
+     private void siftDown(int k, E x) {
+         if (comparator != null)
+             siftDownUsingComparator(k, x);
+         else
+             siftDownComparable(k, x);
+     }
+
+     ==================删除元素===========
+     首先找到该元素对应的索引位置，如果找不到返回false,否则删除这个位置的元素
+     public boolean remove(Object o) {
+         int i = indexOf(o);
+         if (i == -1)
+             return false;
+         else {
+             removeAt(i);
+             return true;
+         }
+     }
+    如果删除的是最后一个元素，则直接删除就可以了
+    先替换，然后先下移，如果不变则还需要上移，如果变了则不需要移动
+     private E removeAt(int i) {
+         // assert i >= 0 && i < size;
+         modCount++;
+         int s = --size;
+         if (s == i) // removed last element
+             queue[i] = null;
+         else {
+             E moved = (E) queue[s];
+             queue[s] = null;
+             siftDown(i, moved);
+             if (queue[i] == moved) {
+                 siftUp(i, moved);
+                 if (queue[i] != moved)
+                     return moved;
+             }
+
+         }
+         return null;
+     }
+
+
+

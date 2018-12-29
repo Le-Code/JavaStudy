@@ -68,7 +68,7 @@ public class Main1 {
         System.out.println(Charset.defaultCharset().name());
     }
 
-    class A implements Comparable<A>{
+    class A {
         private int num;
 
         public A(int num){
@@ -83,28 +83,28 @@ public class Main1 {
             this.num = num;
         }
 
-        /*@Override
+        @Override
         public boolean equals(Object obj) {
             if (obj instanceof A){
                 A a = (A) obj;
                 return a.getNum()==num;
             }
             return false;
-        }*/
+        }
 
         @Override
         public int hashCode() {
             return num;
         }
 
-        @Override
-        public int compareTo(A o) {
+//        @Override
+        /*public int compareTo(A o) {
             if (o.num==num)
                 return 0;
             else if (o.num<num)
                 return -1;
             return 1;
-        }
+        }*/
     }
 
 
