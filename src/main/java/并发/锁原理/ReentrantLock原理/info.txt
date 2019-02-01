@@ -1,0 +1,122 @@
+ReenTrantLock最终还是使用AQS来实现
+    abstract static class Sync extends AbstractQueuedSynchronizer{}
+    AQS的state状态值表示线程获取该锁的可重入次数，默认state=0表示当前锁没有被任何线程占有，
+    一个线程第一次获取该锁会尝试使用CAS设置值为1，如果成功，则记录该锁的持有者为当前线程
+    该线程没有释放锁的情况下再次获取该锁后，状态值为2
+    释放该锁时，state-=1，直到state=0释放锁
+
+
+    获取锁
+
+    void lock（）方法
+        public void lock() {
+            sync.lock();
+        }
+        构造函数指定sync
+        public ReentrantLock() {
+            sync = new NonfairSync();
+        }
+
+        非公平锁就是指先尝试获取锁的线程并不一定比后尝试获取锁的线程有限获取锁
+        class NonFairSync{
+
+            final void lock() {
+                //设置状态值
+                if (compareAndSetState(0, 1))
+                    setExclusiveOwnerThread(Thread.currentThread());
+                else
+                //调用AQS的acquire方法
+                    acquire(1);
+            }
+
+        }
+        AQS并没有提供可用的tryAcquire所以会调用NonFairSync的tryAcquire
+        protected final boolean tryAcquire(int acquires) {
+            return nonfairTryAcquire(acquires);
+        }
+
+        final boolean nonfairTryAcquire(int acquires) {
+            final Thread current = Thread.currentThread();
+            //获取当前锁状态值是否为0
+            int c = getState();
+            如果state=0，表示锁还没有被任何线程占用（同时这也是非公平锁为什么不公平的存在，在后者的线程请求锁的时候走到这一步如果发现锁没有被占有则直接占有）
+            if (c == 0) {
+                尝试CAS获取该锁，讲AQS的状态值从0设置为1
+                if (compareAndSetState(0, acquires)) {
+                    设置当前线程为该锁的持有者
+                    setExclusiveOwnerThread(current);
+                    return true;
+                }
+            }
+            //如果state!=0并且当前锁的持有者就是这个线程，设置锁的可重入次数
+            else if (current == getExclusiveOwnerThread()) {
+                int nextc = c + acquires;
+                if (nextc < 0) // overflow
+                    throw new Error("Maximum lock count exceeded");
+                setState(nextc);
+                return true;
+            }
+            return false;
+        }
+
+        class FairSync{
+            protected final boolean tryAcquire(int acquires) {
+                final Thread current = Thread.currentThread();
+                int c = getState();
+                if (c == 0) {
+                    //这一步体现公平性
+                    if (!hasQueuedPredecessors() &&
+                        compareAndSetState(0, acquires)) {
+                        setExclusiveOwnerThread(current);
+                        return true;
+                    }
+                }
+                else if (current == getExclusiveOwnerThread()) {
+                    int nextc = c + acquires;
+                    if (nextc < 0)
+                        throw new Error("Maximum lock count exceeded");
+                    setState(nextc);
+                    return true;
+                }
+                return false;
+            }
+
+            公平性的核心代码，判断队列里面第一个线程是不是该线程
+            public final boolean hasQueuedPredecessors() {
+                // The correctness of this depends on head being initialized
+                // before tail and on head.next being accurate if the current
+                // thread is first in queue.
+                Node t = tail; // Read fields in reverse initialization order
+                Node h = head;
+                Node s;
+                return h != t &&
+                    ((s = h.next) == null || s.thread != Thread.currentThread());
+            }
+        }
+
+        tryLock()方法
+            尝试获取锁，如果当前锁没有被其他线程占有，则当前线程获取锁并返回true，否则返回false，该方法并不会引起当前线程阻塞
+
+
+    释放锁
+        void unlock（）方法
+
+           public void unlock() {
+               sync.release(1);
+           }
+
+           protected final boolean tryRelease(int releases) {
+               int c = getState() - releases;
+               //如果不是锁持有者调用这个方法，则跑出UNlock异常
+               if (Thread.currentThread() != getExclusiveOwnerThread())
+                   throw new IllegalMonitorStateException();
+               boolean free = false;
+               //如果当前可重入次数为0，清空锁持有现成
+               if (c == 0) {
+                   free = true;
+                   setExclusiveOwnerThread(null);
+               }
+               //设置可重入次数为原始值-1
+               setState(c);
+               return free;
+           }

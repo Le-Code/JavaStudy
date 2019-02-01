@@ -1,0 +1,49 @@
+ReentrantLock是独占锁，只有一个线程可以获取该锁
+ReentrantReadWriteLock采用读写分离的策略，允许多个线程可以同时获取读锁
+
+内部维护了一个ReadLock和WriteLock
+    /** Inner class providing readlock */
+    private final ReentrantReadWriteLock.ReadLock readerLock;
+    /** Inner class providing writelock */
+    private final ReentrantReadWriteLock.WriteLock writerLock;
+
+ASQ只维护了一个state状态，ReentrantReadWriteLock需要分别表示读和写两种状态-高16位表示读状态，低16位表示写锁
+
+写锁：
+    使用WriteLock来实现
+    写锁和读锁不可以同时被占有，两者只能有一个线程获取得到
+
+    void lock()
+
+    protected final boolean tryAcquire(int acquires) {
+        获取当前线程
+        Thread current = Thread.currentThread();
+        获取状态码，注意此时状态同时表示读锁和写锁的可重入次数
+        int c = getState();
+        对状态进行高16位和低16位进行分离，这里为低16位
+        int w = exclusiveCount(c);
+        c!=0表示读锁或者写锁已经被某线程获取
+        if (c != 0) {
+            // (Note: if c != 0 and w == 0 then shared count != 0)
+            w==0说明已经有线程获取了读锁（低16位为0，state!=0只可能是已经有线程获取到了读锁)），w!=并且当前线程不是写锁拥有者，则返回false
+            if (w == 0 || current != getExclusiveOwnerThread())
+                return false;
+            说明当前线程获取到的写锁，判断可重入次数有没有超过最大可重入次数
+            if (w + exclusiveCount(acquires) > MAX_COUNT)
+                throw new Error("Maximum lock count exceeded");
+            // Reentrant acquire
+            设置可重入次数
+            setState(c + acquires);
+            return true;
+        }
+        第一个写线程获取写锁
+        if (writerShouldBlock() ||
+            !compareAndSetState(c, c + acquires))
+            return false;
+        setExclusiveOwnerThread(current);
+        return true;
+    }
+
+    writerShouldBlock()方法，要分为公平锁和非公平锁，
+    对于非公平锁来说总是返回false，获取成功则设置当前锁的持有者为当前线程并且返回true
+    对于公平所来说要先判断当前线程节点是否有前驱节点，如果有则放弃获取写锁的权限。

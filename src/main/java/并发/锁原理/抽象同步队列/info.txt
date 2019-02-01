@@ -1,0 +1,98 @@
+AbstractQueuedSynchronizer（AQS） 抽象同步队列,实现同步器的基础组建
+
+    独占方式下：
+
+        当一个线程调用acquire方式获取独占资源时，会首先使用tryAcquire方法尝试获取资源，具体就是设置变量state的值，
+        成功则直接返回，失败则封装成EXCLUSIVE类型，放到AQS队列的尾部，使用LockSupport来阻塞自己
+        public final void acquire(int arg) {
+            if (!tryAcquire(arg) &&
+                acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+                selfInterrupt();
+        }
+
+        尝试释放资源，unPark激活队列中的一个被阻塞的线程
+        public final boolean release(int arg) {
+            if (tryRelease(arg)) {
+                Node h = head;
+                if (h != null && h.waitStatus != 0)
+                    unparkSuccessor(h);
+                return true;
+            }
+            return false;
+        }
+        AQS并不提供tryAcquire和tryRelease方法，由子类来实现
+
+    共享方式下：
+        尝试获取资源，成功直接返回，失败 封装成SHARED的node节点插入队列尾部
+        public final void acquireShared(int arg) {
+            if (tryAcquireShared(arg) < 0)
+                doAcquireShared(arg);
+        }
+
+        尝试释放资源，unPark激活队列中的一个被阻塞的线程
+        public final boolean releaseShared(int arg) {
+            if (tryReleaseShared(arg)) {
+                doReleaseShared();
+                return true;
+            }
+            return false;
+        }
+        AQS并不提供tryAcquireShared和tryReleaseShared方法，由子类来实现
+
+    AQS维护队列------入队
+
+        第一遍：如果队列为空则为手动创建一个哨兵作为头结点
+        第二遍：讲节点node添加进队列中，双向队列
+        private Node enq(final Node node) {
+            for (;;) {
+                Node t = tail;
+                if (t == null) { // Must initialize
+                    if (compareAndSetHead(new Node()))
+                        tail = head;
+                } else {
+                    node.prev = t;
+                    if (compareAndSetTail(t, node)) {
+                        t.next = node;
+                        return t;
+                    }
+                }
+            }
+        }
+
+    AQS的条件变量的支持
+        条件变量的signal和await 相当于notify和wait(配合synchronize)一样配合AQS实现线程间的同步
+
+        await方法，内部构建一个类型为Node.condition的node 节点，存放到条件队列末尾，之后当前线程会释放获取到的锁并被挂起
+
+            public final void await() throws InterruptedException {
+                if (Thread.interrupted())
+                    throw new InterruptedException();
+                //创建新的节点，并插入到条件队列末尾
+                Node node = addConditionWaiter();
+                释放当前线程获取到的锁
+                int savedState = fullyRelease(node);
+                int interruptMode = 0;
+                调用park方法阻塞挂起当前线程
+                while (!isOnSyncQueue(node)) {
+                    LockSupport.park(this);
+                    if ((interruptMode = checkInterruptWhileWaiting(node)) != 0)
+                        break;
+                }
+                if (acquireQueued(node, savedState) && interruptMode != THROW_IE)
+                    interruptMode = REINTERRUPT;
+                if (node.nextWaiter != null) // clean up if cancelled
+                    unlinkCancelledWaiters();
+                if (interruptMode != 0)
+                    reportInterruptAfterWait(interruptMode);
+            }
+
+        signal方法，背部会把条件队列里面队头的一个线程节点从条件队列中移除并放入到AQS的阻塞队列里面，然后激活这个线程
+
+            public final void signal() {
+                if (!isHeldExclusively())
+                    throw new IllegalMonitorStateException();
+                Node first = firstWaiter;
+                if (first != null)
+                    条件队列头元素移动到AQS队列
+                    doSignal(first);
+            }

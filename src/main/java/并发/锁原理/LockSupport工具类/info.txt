@@ -1,0 +1,26 @@
+LockSupport
+    主要工作是唤醒线程和挂起线程，创建锁和其他同类的基础
+
+    主要方法
+        1）void park()
+        如果调用park方法的线程已经拿到了与LockSupport关联的许可证，则调用LockSupport会马上返回，否则调用线程会禁止参与调度，也就是阻塞挂起
+        park方法返回是不会告诉我们因为何种原因返回，所以我们还需要自行检查判断条件
+
+        park(Object blocker)
+            通过这个方法可以通过诊断工具查出线程被阻塞的原因
+        public static void park(Object blocker) {
+            //获取调用线程
+            Thread t = Thread.currentThread();
+            //设置该线程的Blocker
+            setBlocker(t, blocker);
+            //挂起线程
+            UNSAFE.park(false, 0L);
+            //线程被激活后清除blocker变量，因为一般都是在线程阻塞时才会分析原因
+            setBlocker(t, null);
+        }
+
+        2)void unPark(Thread thread)
+        当一个线程调用unPark，如果参数thread线程没有持有thread和LockSupport的关联，则让thread持有。
+        如果thread之前因调用park而被挂起，则调用unPark后，线程会被唤醒
+        之前没有调用park，调用unPark后，再调用Lock则会被立即返回
+

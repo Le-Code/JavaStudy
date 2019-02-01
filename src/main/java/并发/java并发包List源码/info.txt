@@ -1,0 +1,23 @@
+CopyOnWriteArrayList
+    是一个线程安全的ArrayList，所有对其进行的修改操作都是在底层的一个复制的数组上进行的，使用了写时复制的策略
+    也是使用Object数组array来存放具体元素，使用ReentrantLock独占锁来保证同时只有一个线程对array进行修改
+
+    添加操作add
+        public boolean add(E e) {
+            //第一步，获取锁，保证只有一个线程能够对其进行操作
+            final ReentrantLock lock = this.lock;
+            lock.lock();
+            try {
+                //获取array
+                Object[] elements = getArray();
+                int len = elements.length;
+                //复制array到一个新的数组，长度为原来长度+1，并且把添加的元素放到最后一个位置上
+                Object[] newElements = Arrays.copyOf(elements, len + 1);
+                newElements[len] = e;
+                setArray(newElements);
+                return true;
+            } finally {
+                lock.unlock();
+            }
+        }
+
