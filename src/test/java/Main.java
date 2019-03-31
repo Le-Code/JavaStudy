@@ -55,4 +55,10 @@ public class Main {
         list.add("1");
         System.out.println(Arrays.toString(list.toArray()));
     }
+
+    @Test
+    public void f(){
+        for (;;)
+            System.out.println("hello");
+    }
 }
