@@ -1,4 +1,4 @@
-package jvm.垃圾收集;
+package jvm.垃圾收集器与内存分配.垃圾收集.引用计数回收机制;
 
 /**
  * 引用计数算法难以解决循环引用的方法，
@@ -8,6 +8,10 @@ package jvm.垃圾收集;
  */
 public class ReferenceCountingGC {
     public Object instance = null;
+
+    private static final int _1MB = 1024*1024;
+
+    private byte[] bigSize = new byte[2*_1MB];
 
     public static void testGC(){
         ReferenceCountingGC objA = new ReferenceCountingGC();

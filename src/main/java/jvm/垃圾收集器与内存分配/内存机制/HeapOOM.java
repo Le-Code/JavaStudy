@@ -1,4 +1,4 @@
-package jvm.内存机制;
+package jvm.垃圾收集器与内存分配.内存机制;
 
 import java.util.ArrayList;
 import java.util.List;
