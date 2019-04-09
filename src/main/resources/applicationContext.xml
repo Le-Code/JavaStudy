@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--默认构造方式-->
+    <bean id="bean" class="spring_study.加载bean的三种方式.默认构造方式.Bean"></bean>
+
+    <!--静态工厂-->
+    <bean id="bean1" class="spring_study.加载bean的三种方式.静态工厂.Bean1Factory" factory-method="getBean1"></bean>
+
+    <!--实例工厂-->
+    <bean id="bean2Factory" class="spring_study.加载bean的三种方式.实例化工厂.Bean2Factory"></bean>
+    <bean id="bean2" factory-bean="bean2Factory" factory-method="getBean2"></bean>
+
+</beans>
