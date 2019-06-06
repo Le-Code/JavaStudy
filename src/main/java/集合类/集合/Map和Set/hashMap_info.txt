@@ -6,7 +6,7 @@ HashMap的随机生成
         //table数组扩容，键值对个数大于等于该值时扩容
         int threshold;
         final float loadFactor;
-    其中transient表示暂时变量，在对象存储的时候不需要位置，不参与序列化过程
+    其中transient表示暂时变量，在对象存储的时候不需要维持，不参与序列化过程
     HashMap的加值方法
         public V put(K key, V value) {
             return putVal(hash(key), key, value, false, true);

@@ -2,7 +2,9 @@ package 常用基础类;
 
 import org.junit.Test;
 
+import java.io.*;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.TreeSet;
 
@@ -66,6 +68,32 @@ public class Main1 {
     public void test5(){
         //返回系统的默认编码
         System.out.println(Charset.defaultCharset().name());
+    }
+
+    /**
+     * 测试byteArrayOutputStream
+     */
+    @Test
+    public void test6() throws IOException {
+        InputStream is = new FileInputStream(new File("test.txt"));
+        int len;
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        while ((len = is.read(buffer))!=-1){
+            bos.write(buffer,0, len);
+        }
+        byte[] bytes = bos.toByteArray();
+        System.out.println(Arrays.toString(bytes));
+    }
+
+    @Test
+    public void test7(){
+        String a = "abc";
+        String b = new String("abc");
+        String c = new String("ab")+new String("c");
+        System.out.println(a==b);
+        System.out.println(a==c);
+        System.out.println(b==c);
     }
 
     class A {

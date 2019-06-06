@@ -5,7 +5,7 @@ package socket通信.单聊;
  */
 public class SocketUrls {
     //ip地址
-    public final static String IP = "192.168.2.103";
+    public final static String IP = "192.168.123.138";
     //端口号
     public final static int PORT = 8888;
 }
