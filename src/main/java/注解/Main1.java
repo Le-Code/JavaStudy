@@ -18,7 +18,7 @@ public class Main1 {
     }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.FIELD)
+    @Target({ElementType.FIELD})
     @interface Format{
         String pattern() default "yyyy-MM-dd HH:mm:ss";
         String timeZone() default "GMT+8";

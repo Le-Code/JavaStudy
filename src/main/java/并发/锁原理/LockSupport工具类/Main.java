@@ -72,8 +72,6 @@ public class Main {
         Thread.sleep(1000);
         System.out.println("main thread unPark");
         //中断子线程
-//        thread.interrupt();
-        LockSupport.unpark(thread);
+        thread.interrupt();
     }
-
 }

@@ -5,6 +5,7 @@ LockSupport
         1）void park()
         如果调用park方法的线程已经拿到了与LockSupport关联的许可证，则调用LockSupport会马上返回，否则调用线程会禁止参与调度，也就是阻塞挂起
         park方法返回是不会告诉我们因为何种原因返回，所以我们还需要自行检查判断条件
+        park方法响应中断，但是不会抛出InterruptException异常
 
         park(Object blocker)
             通过这个方法可以通过诊断工具查出线程被阻塞的原因
